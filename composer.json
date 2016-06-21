@@ -1,0 +1,21 @@
+{
+  "name": "wizhi/security",
+  "description": "WordPress Register & Login plugin",
+  "type": "wordpress-plugin",
+  "require": {
+    "thefold/wordpress-dispatcher": "^1.0",
+    "vlucas/valitron": "^1.2",
+    "nette/forms": "^2.3",
+    "overtrue/socialite": "^1.0",
+    "gregwar/captcha": "^1.1"
+  },
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Amos Lee",
+      "email": "iwillhappy1314@gmail.com"
+    }
+  ],
+  "minimum-stability": "stable",
+  "preferred-install": "dist"
+}
