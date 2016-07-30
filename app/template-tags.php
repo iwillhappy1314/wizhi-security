@@ -17,9 +17,9 @@ function wizhi_security_links() {
 		echo '<a href="#modal-register" rel="modal:open">注册</a>';
 		echo '<a href="#modal-login" rel="modal:open">登录</a>';
 
-		wizhi_get_template_part( 'security', 'login' );
-		wizhi_get_template_part( 'security', 'register' );
-		wizhi_get_template_part( 'security', 'reset' );
+		security_get_template_part( 'security', 'login' );
+		security_get_template_part( 'security', 'register' );
+		security_get_template_part( 'security', 'reset' );
 	}
 
 }
@@ -32,9 +32,9 @@ function wizhi_security_forms() {
 
 	echo '<div class="security-forms">';
 
-	wizhi_get_template_part( 'security', 'login' );
-	wizhi_get_template_part( 'security', 'register' );
-	wizhi_get_template_part( 'security', 'reset' );
+	security_get_template_part( 'security', 'login' );
+	security_get_template_part( 'security', 'register' );
+	security_get_template_part( 'security', 'reset' );
 
 	echo '</div>';
 
@@ -61,14 +61,13 @@ if ( ! function_exists( 'wizhi_shortcode_security_forms' ) ) {
 		extract( shortcode_atts( $default, $atts ) );
 
 		echo '<div class="security-forms">';
-		echo wizhi_load_template_part( 'security', $action);
+		echo wizhi_load_template_part( 'security', $action );
 		echo '</div>';
 		echo '<script>jQuery("#modal-login").show();</script>';
 
 	}
 }
 add_shortcode( 'security_forms', 'wizhi_shortcode_security_forms' );
-
 
 
 /**
