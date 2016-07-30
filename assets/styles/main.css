@@ -63,7 +63,7 @@
     position: absolute;
     right: 1px;
     height: 31px;
-    top: 29px;
+    top: 30px;
 }
 
 .jquery-modal .pure-control-group {
@@ -83,4 +83,20 @@
 
 .jquery-modal .pure-controls{
     margin-top: 15px;
+}
+
+@media screen and (max-width: 48em){
+    .blocker{
+        padding: 0 !important;
+    }
+    .blocker:before{
+        display: none !important;
+    }
+    .modal {
+        width: 100% !important;
+        height: 100% !important;
+    }
+    .pure-form button[type=submit] {
+        margin: 0 !important;
+    }
 }
