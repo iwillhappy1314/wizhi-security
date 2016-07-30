@@ -45,8 +45,8 @@ if ( $wizhi_use_cms_front ) {
  * @package front
  */
 function wizhi_security_style() {
-	wp_register_style( 'wizhi-style', plugins_url( '/assets/styles/main.css', __FILE__ ) );
-	wp_enqueue_style( 'wizhi-style' );
+	wp_register_style( 'wizhi-security-style', plugins_url( '/assets/styles/main.css', __FILE__ ) );
+	wp_enqueue_style( 'wizhi-security-style' );
 }
 
 /**
@@ -55,7 +55,7 @@ function wizhi_security_style() {
  * @package front
  */
 function wizhi_security_scripts() {
-	wp_register_script( 'plugin_script', plugins_url( '/assets/scripts/main.js', __FILE__ ), [ 'jquery' ], '1.1', true );
-	wp_enqueue_script( 'plugin_script' );
+	wp_register_script( 'wizhi-security-script', plugins_url( '/assets/scripts/main.js', __FILE__ ), [ 'jquery' ], '1.1', true );
+	wp_enqueue_script( 'wizhi-security-script' );
 }
 
