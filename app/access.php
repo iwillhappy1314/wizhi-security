@@ -324,7 +324,7 @@ new Dispatch( [
 
 				// 生成激活码并添加到用户自定义字段中
 				$activation_code = wp_generate_password( 10 );
-				add_user_meta( $errors, $this->user_meta, $activation_code );
+				add_user_meta( $errors, 'activation_code', $activation_code );
 
 				$msg = [
 					'registered' => true,

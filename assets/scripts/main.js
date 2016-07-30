@@ -587,6 +587,9 @@ jQuery(document).ready(function ($) {
 
     // 登录表单提交时执行 Ajax 登录
     $('form#modal-login').on('submit', function (e) {
+
+        e.preventDefault();
+
         var checkbox_value = "";
         if ($('#rememberme').is(":checked")) {
             checkbox_value = $('form#login #rememberme').val();
@@ -602,21 +605,25 @@ jQuery(document).ready(function ($) {
                 'security-login': $('form#modal-login #security-login').val()
             },
             beforeSend: function () {
-                $('#wp-submit').button('loading');
+                $('#wp-submit').addClass('loading');
             },
             success: function (data) {
-                $('#wp-submit').button('reset');
+                $('#wp-submit').removeClass('reset');
                 $('form#modal-login div.status').html(data.message).fadeIn();
                 if (data.loggedin == true) {
                     window.location.reload();
                 }
             }
         });
-        e.preventDefault();
+
+        return false;
     });
 
     // 注册表单提交时执行 Ajax 注册
     $('form#modal-register').on('submit', function (e) {
+
+        e.preventDefault();
+
         $.ajax({
             type: 'POST',
             dataType: 'json',
@@ -630,21 +637,28 @@ jQuery(document).ready(function ($) {
                 'security-register': $('form#modal-register #security-register').val()
             },
             beforeSend: function () {
-                $('#pass-submit').button('loading');
+                $('#pass-submit').addClass('loading');
             },
             success: function (data) {
-                $('#pass-submit').button('reset');
+                $('#pass-submit').removeClass('reset');
                 $('form#modal-register div.status').html(data.message).fadeIn();
                 if (data.registered == true && ajax_login_object.registerRedirectURL != '') {
                     window.location.href = ajax_login_object.registerRedirectURL;
                 }
+            },
+            error: function (data) {
+                $('#pass-submit').removeClass('reset');
             }
         });
-        e.preventDefault();
+
+        return false;
     });
 
     // 找回密码
     $('form#modal-reset-pass').on('submit', function (e) {
+
+        e.preventDefault();
+
         $.ajax({
             type: 'POST',
             dataType: 'json',
@@ -654,14 +668,16 @@ jQuery(document).ready(function ($) {
                 'security-reset': $('form#modal-reset-pass #security-reset').val()
             },
             beforeSend: function () {
-                $('#user-submit').button('loading');
+                $('#user-submit').addClass('loading');
             },
             success: function (data) {
-                $('#user-submit').button('reset');
+                $('#user-submit').removeClass('reset');
                 $('form#modal-reset-pass div.status').html(data.message).fadeIn();
             }
         });
-        e.preventDefault();
+
+        return false;
+
     });
 
     // 移除信息盒子
