@@ -12,7 +12,13 @@ Add Modal Register and login to WordPress, 为 WordPress 添加模式窗口注�
 
 == Description ==
 
-Wizhi CMS 以简码的形式添加了中国一些CMS系统常用的调用标签，如织梦，PHPCMS等系统中的模板标签功能。
+WordPress 模态窗口注册、登录、找回密码插件。
+
+- 支持微博、微信、QQ 登录
+- 支持找回密码
+- 在模态窗口中切换注册、登录、找回密码
+- 注册登录模板支持自定义
+- 前段样式依赖 wizhi cms 或 pure css
 
 
 = 支持功能
