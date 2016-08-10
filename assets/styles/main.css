@@ -27,6 +27,10 @@
     background-color: transparent;
 }
 
+.form-group{
+	position: relative;
+}
+
 .modal {
     display: inline-block;
     vertical-align: middle;
@@ -62,8 +66,8 @@
 #captcha_img {
     position: absolute;
     right: 1px;
-    height: 31px;
-    top: 30px;
+    top: 26px;
+    height: 32px;
 }
 
 .jquery-modal .pure-control-group {

@@ -9,7 +9,7 @@
 
 ?>
 
-<form id="modal-reset-pass" class="pure-form" action="" method="post" style="display: none">
+<form id="modal-reset-pass" class="modal-resetpass-form" action="" method="post" style="display: none">
 
 	<div class="modal-header">
 		<a href="#close" class="close" rel="modal:close">x</a>
@@ -22,7 +22,7 @@
 
 		<div class="status"></div>
 
-		<div class="pure-control-group">
+		<div class="form-group">
 			<label for="user_login">用户名</label>
 			<input type="text" class="form-control" name="lost_pass" id="lost_pass" placeholder="用户名或电子邮件地址">
 		</div>
@@ -30,7 +30,7 @@
 		<?php wp_nonce_field( 'ajax-form-nonce', 'security-reset' ); ?>
 		<input type="hidden" name="forgotten" value="true"/>
 
-		<div class="pure-controls">
+		<div class="form-controls">
 			<button type="submit" name="user-sumbit" id="user-submit" class="btn btn-primary">找回密码</button>
 			<a class="btn btn-default" href="#modal-login" rel="modal:open">登录</a>
 		</div>
