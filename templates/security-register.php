@@ -53,7 +53,7 @@
 		<?php wp_nonce_field( 'ajax-form-nonce', 'security-register' ); ?>
 
 		<div class="pure-controls">
-			<button type="submit" name="pass-sumbit" id="pass-submit" class="pure-button button-primary">注册</button>
+			<button type="submit" name="pass-sumbit" id="pass-submit" class="btn btn-primary">注册</button>
 			<a class="btn btn-default" href="#modal-login" rel="modal:open">登录</a>
 		</div>
 

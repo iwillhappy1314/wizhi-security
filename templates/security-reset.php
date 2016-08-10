@@ -31,7 +31,7 @@
 		<input type="hidden" name="forgotten" value="true"/>
 
 		<div class="pure-controls">
-			<button type="submit" name="user-sumbit" id="user-submit" class="pure-button button-primary">找回密码</button>
+			<button type="submit" name="user-sumbit" id="user-submit" class="btn btn-primary">找回密码</button>
 			<a class="btn btn-default" href="#modal-login" rel="modal:open">登录</a>
 		</div>
 

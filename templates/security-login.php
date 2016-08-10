@@ -35,8 +35,8 @@
 			<label class="pure-checkbox" >
 				<input name="rememberme" type="checkbox" id="rememberme" value="forever"> 记住我
 			</label>
-			<button type="submit" name="submit" id="wp-submit" class="pure-button button-primary">登录</button>
-			<a class="pure-button button-default" href="#modal-register" rel="modal:open">注册</a>
+			<button type="submit" name="submit" id="wp-submit" class="btn btn-primary">登录</button>
+			<a class="btn btn-default" href="#modal-register" rel="modal:open">注册</a>
 			<a href="#modal-reset-pass" rel="modal:open">找回密码</a>
 		</div>
 
