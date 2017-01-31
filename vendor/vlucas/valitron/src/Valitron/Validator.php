@@ -1,16 +1,14 @@
 <?php
 namespace Valitron;
 
-use InvalidArgumentException;
-
 /**
  * Validation Class
  *
  * Validates input against certain criteria
  *
  * @package Valitron
- * @author Vance Lucas <vance@vancelucas.com>
- * @link http://www.vancelucas.com/
+ * @author  Vance Lucas <vance@vancelucas.com>
+ * @link    http://www.vancelucas.com/
  */
 class Validator
 {
@@ -38,6 +36,21 @@ class Validator
      * @var array
      */
     protected $_labels = array();
+
+    /**
+     * Contains all rules that are available to the current valitron instance.
+     *
+     * @var array
+     */
+    protected $_instanceRules = array();
+
+    /**
+     * Contains all rule messages that are available to the current valitron
+     * instance
+     *
+     * @var array
+     */
+    protected $_instanceRuleMessage = array();
 
     /**
      * @var string
@@ -91,7 +104,7 @@ class Validator
             $langMessages = include $langFile;
             static::$_ruleMessages = array_merge(static::$_ruleMessages, $langMessages);
         } else {
-            throw new \InvalidArgumentException("fail to load language file '$langFile'");
+            throw new \InvalidArgumentException("Fail to load language file '" . $langFile . "'");
         }
     }
 
@@ -325,7 +338,7 @@ class Validator
         if (!is_numeric($value)) {
             return false;
         } elseif (function_exists('bccomp')) {
-            return !(bccomp($params[0], $value, 14) == 1);
+            return !(bccomp($params[0], $value, 14) === 1);
         } else {
             return $params[0] <= $value;
         }
@@ -345,10 +358,33 @@ class Validator
         if (!is_numeric($value)) {
             return false;
         } elseif (function_exists('bccomp')) {
-            return !(bccomp($value, $params[0], 14) == 1);
+            return !(bccomp($value, $params[0], 14) === 1);
         } else {
             return $params[0] >= $value;
         }
+    }
+
+    /**
+     * Validate the size of a field is between min and max values
+     *
+     * @param  string $field
+     * @param  mixed  $value
+     * @param  array  $params
+
+     * @return bool
+     */
+    protected function validateBetween($field, $value, $params)
+    {
+        if (!is_numeric($value)) {
+            return false;
+        }
+        if (!isset($params[0]) || !is_array($params[0]) || count($params[0]) !== 2) {
+            return false;
+        }
+
+        list($min, $max) = $params[0];
+
+        return $this->validateMin($field, $value, array($min)) && $this->validateMax($field, $value, array($max));
     }
 
     /**
@@ -406,7 +442,26 @@ class Validator
             return false;
         }
 
-        return (strpos($value, $params[0]) !== false);
+        $strict = true;
+        if (isset($params[1])) {
+            $strict = (bool) $params[1];
+        }
+
+        $isContains = false;
+        if ($strict) {
+            if (function_exists('mb_strpos')) {
+                $isContains = mb_strpos($value, $params[0]) !== false;
+            } else {
+                $isContains = strpos($value, $params[0]) !== false;
+            }
+        } else {
+            if (function_exists('mb_stripos')) {
+                $isContains = mb_stripos($value, $params[0]) !== false;
+            } else {
+                $isContains = stripos($value, $params[0]) !== false;
+            }
+        }
+        return $isContains;
     }
 
     /**
@@ -463,7 +518,7 @@ class Validator
         foreach ($this->validUrlPrefixes as $prefix) {
             if (strpos($value, $prefix) !== false) {
                 $host = parse_url(strtolower($value), PHP_URL_HOST);
-                
+
                 return checkdnsrr($host, 'A') || checkdnsrr($host, 'AAAA') || checkdnsrr($host, 'CNAME');
             }
         }
@@ -670,7 +725,7 @@ class Validator
             } else {
                 $cardRegex = array(
                     'visa'          => '#^4[0-9]{12}(?:[0-9]{3})?$#',
-                    'mastercard'    => '#^5[1-5][0-9]{14}$#',
+                    'mastercard'    => '#^(5[1-5]|2[2-7])[0-9]{14}$#',
                     'amex'          => '#^3[47][0-9]{13}$#',
                     'dinersclub'    => '#^3(?:0[0-5]|[68][0-9])[0-9]{11}$#',
                     'discover'      => '#^6(?:011|5[0-9]{2})[0-9]{12}$#',
@@ -881,8 +936,9 @@ class Validator
                 }
 
                 // Callback is user-specified or assumed method on class
-                if (isset(static::$_rules[$v['rule']])) {
-                    $callback = static::$_rules[$v['rule']];
+                $errors = $this->getRules();
+                if (isset($errors[$v['rule']])) {
+                    $callback = $errors[$v['rule']];
                 } else {
                     $callback = array($this, 'validate' . ucfirst($v['rule']));
                 }
@@ -906,12 +962,33 @@ class Validator
     }
 
     /**
+     * Returns all rule callbacks, the static and instance ones.
+     *
+     * @return array
+     */
+    protected function getRules()
+    {
+        return array_merge($this->_instanceRules, static::$_rules);
+    }
+
+    /**
+     * Returns all rule message, the static and instance ones.
+     *
+     * @return array
+     */
+    protected function getRuleMessages()
+    {
+        return array_merge($this->_instanceRuleMessage, static::$_ruleMessages);
+    }
+
+    /**
      * Determine whether a field is being validated by the given rule.
      *
      * @param  string  $name  The name of the rule
      * @param  string  $field The name of the field
      * @return boolean
      */
+
     protected function hasRule($name, $field)
     {
         foreach ($this->_validations as $validation) {
@@ -925,6 +1002,31 @@ class Validator
         return false;
     }
 
+    protected static function assertRuleCallback($callback)
+    {
+        if (!is_callable($callback)) {
+            throw new \InvalidArgumentException('Second argument must be a valid callback. Given argument was not callable.');
+        }
+    }
+
+
+    /**
+     * Adds a new validation rule callback that is tied to the current
+     * instance only.
+     *
+     * @param string                     $name
+     * @param mixed                         $callback
+     * @param string                     $message
+     * @throws \InvalidArgumentException
+     */
+    public function addInstanceRule($name, $callback, $message = null)
+    {
+        static::assertRuleCallback($callback);
+
+        $this->_instanceRules[$name] = $callback;
+        $this->_instanceRuleMessage[$name] = $message;
+    }
+
     /**
      * Register new validation rule callback
      *
@@ -933,27 +1035,75 @@ class Validator
      * @param  string                    $message
      * @throws \InvalidArgumentException
      */
-    public static function addRule($name, $callback, $message = self::ERROR_DEFAULT)
+    public static function addRule($name, $callback, $message = null)
     {
-        if (!is_callable($callback)) {
-            throw new \InvalidArgumentException('Second argument must be a valid callback. Given argument was not callable.');
+        if ($message === null)
+        {
+            $message = static::ERROR_DEFAULT;
         }
+
+        static::assertRuleCallback($callback);
 
         static::$_rules[$name] = $callback;
         static::$_ruleMessages[$name] = $message;
     }
 
+    public function getUniqueRuleName($fields)
+    {
+        if (is_array($fields))
+        {
+            $fields = implode("_", $fields);
+        }
+
+        $orgName = "{$fields}_rule";
+        $name = $orgName;
+        $rules = $this->getRules();
+        while (isset($rules[$name]))
+        {
+            $name = $orgName . "_" . rand(0, 10000);
+        }
+
+        return $name;
+    }
+
+    /**
+     * Returns true if either a valdiator with the given name has been
+     * registered or there is a default validator by that name.
+     *
+     * @param string    $name
+     * @return bool
+     */
+    public function hasValidator($name)
+    {
+        $rules = $this->getRules();
+        return method_exists($this, "validate" . ucfirst($name))
+            || isset($rules[$name]);
+    }
+
     /**
      * Convenience method to add a single validation rule
      *
-     * @param  string                    $rule
+     * @param  string|callback           $rule
      * @param  array                     $fields
      * @return $this
      * @throws \InvalidArgumentException
      */
     public function rule($rule, $fields)
     {
-        if (!isset(static::$_rules[$rule])) {
+        // Get any other arguments passed to function
+        $params = array_slice(func_get_args(), 2);
+
+        if (is_callable($rule)
+            && !(is_string($rule) && $this->hasValidator($rule)))
+        {
+            $name = $this->getUniqueRuleName($fields);
+            $msg = isset($params[0]) ? $params[0] : null;
+            $this->addInstanceRule($name, $rule, $msg);
+            $rule = $name;
+        }
+
+        $errors = $this->getRules();
+        if (!isset($errors[$rule])) {
             $ruleMethod = 'validate' . ucfirst($rule);
             if (!method_exists($this, $ruleMethod)) {
                 throw new \InvalidArgumentException("Rule '" . $rule . "' has not been registered with " . __CLASS__ . "::addRule().");
@@ -961,10 +1111,8 @@ class Validator
         }
 
         // Ensure rule has an accompanying message
-        $message = isset(static::$_ruleMessages[$rule]) ? static::$_ruleMessages[$rule] : self::ERROR_DEFAULT;
-
-        // Get any other arguments passed to function
-        $params = array_slice(func_get_args(), 2);
+        $msgs = $this->getRuleMessages();
+        $message = isset($msgs[$rule]) ? $msgs[$rule] : self::ERROR_DEFAULT;
 
         $this->_validations[] = array(
             'rule' => $rule,
@@ -991,7 +1139,7 @@ class Validator
 
     /**
      * @param  array  $labels
-     * @return string
+     * @return $this
      */
     public function labels($labels = array())
     {
@@ -1044,5 +1192,20 @@ class Validator
                 $this->rule($ruleType, $params);
             }
         }
+    }
+
+    /**
+     * Replace data on cloned instance
+     *
+     * @param  array $data
+     * @param  array $fields
+     * @return Valitron
+     */
+    public function withData($data, $fields = array())
+    {
+        $clone = clone $this;
+        $clone->_fields = !empty($fields) ? array_intersect_key($data, array_flip($fields)) : $data;
+        $clone->_errors = array();
+        return $clone;
     }
 }

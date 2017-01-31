@@ -18,7 +18,7 @@ use Nette;
 class Container extends Component implements IContainer
 {
 	/** @var IComponent[] */
-	private $components = array();
+	private $components = [];
 
 	/** @var IComponent|NULL */
 	private $cloning;
@@ -69,7 +69,7 @@ class Container extends Component implements IContainer
 
 		try {
 			if (isset($this->components[$insertBefore])) {
-				$tmp = array();
+				$tmp = [];
 				foreach ($this->components as $k => $v) {
 					if ($k === $insertBefore) {
 						$tmp[$name] = $component;
@@ -114,6 +114,10 @@ class Container extends Component implements IContainer
 	 */
 	public function getComponent($name, $need = TRUE)
 	{
+		if (isset($this->components[$name])) {
+			return $this->components[$name];
+		}
+
 		if (is_int($name)) {
 			$name = (string) $name;
 
@@ -177,7 +181,7 @@ class Container extends Component implements IContainer
 	{
 		$ucname = ucfirst($name);
 		$method = 'createComponent' . $ucname;
-		if ($ucname !== $name && method_exists($this, $method) && $this->getReflection()->getMethod($method)->getName() === $method) {
+		if ($ucname !== $name && method_exists($this, $method) && (new \ReflectionMethod($this, $method))->getName() === $method) {
 			$component = $this->$method($name);
 			if (!$component instanceof IComponent && !isset($this->components[$name])) {
 				$class = get_class($this);
@@ -202,8 +206,7 @@ class Container extends Component implements IContainer
 			$iterator = new \RecursiveIteratorIterator($iterator, $deep);
 		}
 		if ($filterType) {
-			$class = PHP_VERSION_ID < 50400 ? 'Nette\Iterators\Filter' : 'CallbackFilterIterator';
-			$iterator = new $class($iterator, function ($item) use ($filterType) {
+			$iterator = new \CallbackFilterIterator($iterator, function ($item) use ($filterType) {
 				return $item instanceof $filterType;
 			});
 		}

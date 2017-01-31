@@ -22,8 +22,10 @@ use Nette;
  * @property-read bool $ok
  * @property-read string|NULL $contents
  */
-class FileUpload extends Nette\Object
+class FileUpload
 {
+	use Nette\SmartObject;
+
 	/** @var string */
 	private $name;
 
@@ -42,7 +44,7 @@ class FileUpload extends Nette\Object
 
 	public function __construct($value)
 	{
-		foreach (array('name', 'type', 'size', 'tmp_name', 'error') as $key) {
+		foreach (['name', 'type', 'size', 'tmp_name', 'error'] as $key) {
 			if (!isset($value[$key]) || !is_scalar($value[$key])) {
 				$this->error = UPLOAD_ERR_NO_FILE;
 				return; // or throw exception?
@@ -139,17 +141,34 @@ class FileUpload extends Nette\Object
 
 
 	/**
+	 * @return bool
+	 */
+	public function hasFile()
+	{
+		return $this->error !== UPLOAD_ERR_NO_FILE;
+	}
+
+
+	/**
 	 * Move uploaded file to new location.
 	 * @param  string
-	 * @return self
+	 * @return static
 	 */
 	public function move($dest)
 	{
-		@mkdir(dirname($dest), 0777, TRUE); // @ - dir may already exist
-		@unlink($dest); // @ - file may not exists
-		if (!call_user_func(is_uploaded_file($this->tmpName) ? 'move_uploaded_file' : 'rename', $this->tmpName, $dest)) {
-			throw new Nette\InvalidStateException("Unable to move uploaded file '$this->tmpName' to '$dest'.");
+		$dir = dirname($dest);
+		@mkdir($dir, 0777, TRUE); // @ - dir may already exist
+		if (!is_dir($dir)) {
+			throw new Nette\InvalidStateException("Directory '$dir' cannot be created. " . error_get_last()['message']);
 		}
+		@unlink($dest); // @ - file may not exists
+		Nette\Utils\Callback::invokeSafe(
+			is_uploaded_file($this->tmpName) ? 'move_uploaded_file' : 'rename',
+			[$this->tmpName, $dest],
+			function ($message) use ($dest) {
+				throw new Nette\InvalidStateException("Unable to move uploaded file '$this->tmpName' to '$dest'. $message");
+			}
+		);
 		@chmod($dest, 0666); // @ - possible low permission to chmod
 		$this->tmpName = $dest;
 		return $this;
@@ -162,7 +181,7 @@ class FileUpload extends Nette\Object
 	 */
 	public function isImage()
 	{
-		return in_array($this->getContentType(), array('image/gif', 'image/png', 'image/jpeg'), TRUE);
+		return in_array($this->getContentType(), ['image/gif', 'image/png', 'image/jpeg'], TRUE);
 	}
 
 

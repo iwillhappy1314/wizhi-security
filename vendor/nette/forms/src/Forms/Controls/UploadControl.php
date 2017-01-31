@@ -8,6 +8,7 @@
 namespace Nette\Forms\Controls;
 
 use Nette;
+use Nette\Forms;
 use Nette\Http\FileUpload;
 
 
@@ -16,6 +17,8 @@ use Nette\Http\FileUpload;
  */
 class UploadControl extends BaseControl
 {
+	/** validation rule */
+	const VALID = ':uploadControlValid';
 
 	/**
 	 * @param  string  label
@@ -26,6 +29,9 @@ class UploadControl extends BaseControl
 		parent::__construct($label);
 		$this->control->type = 'file';
 		$this->control->multiple = (bool) $multiple;
+		$this->setOption('type', 'file');
+		$this->addCondition(Forms\Form::FILLED)
+			->addRule([$this, 'isOk'], Forms\Validator::$messages[self::VALID]);
 	}
 
 
@@ -38,7 +44,7 @@ class UploadControl extends BaseControl
 	protected function attached($form)
 	{
 		if ($form instanceof Nette\Forms\Form) {
-			if ($form->getMethod() !== Nette\Forms\Form::POST) {
+			if (!$form->isMethod('post')) {
 				throw new Nette\InvalidStateException('File upload requires method POST.');
 			}
 			$form->getElementPrototype()->enctype = 'multipart/form-data';
@@ -71,7 +77,8 @@ class UploadControl extends BaseControl
 
 
 	/**
-	 * @return self
+	 * @return static
+	 * @internal
 	 */
 	public function setValue($value)
 	{
@@ -85,7 +92,9 @@ class UploadControl extends BaseControl
 	 */
 	public function isFilled()
 	{
-		return $this->value instanceof FileUpload ? $this->value->isOk() : (bool) $this->value; // ignore NULL object
+		return $this->value instanceof FileUpload
+			? $this->value->getError() !== UPLOAD_ERR_NO_FILE // ignore NULL object
+			: (bool) $this->value;
 	}
 
 

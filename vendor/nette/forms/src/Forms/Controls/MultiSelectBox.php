@@ -16,17 +16,27 @@ use Nette;
 class MultiSelectBox extends MultiChoiceControl
 {
 	/** @var array of option / optgroup */
-	private $options = array();
+	private $options = [];
+
+	/** @var array */
+	private $optionAttributes = [];
+
+
+	public function __construct($label = NULL, array $items = NULL)
+	{
+		parent::__construct($label, $items);
+		$this->setOption('type', 'select');
+	}
 
 
 	/**
 	 * Sets options and option groups from which to choose.
-	 * @return self
+	 * @return static
 	 */
 	public function setItems(array $items, $useKeys = TRUE)
 	{
 		if (!$useKeys) {
-			$res = array();
+			$res = [];
 			foreach ($items as $key => $value) {
 				unset($items[$key]);
 				if (is_array($value)) {
@@ -50,18 +60,28 @@ class MultiSelectBox extends MultiChoiceControl
 	 */
 	public function getControl()
 	{
-		$items = array();
+		$items = [];
 		foreach ($this->options as $key => $value) {
 			$items[is_array($value) ? $this->translate($key) : $key] = $this->translate($value);
 		}
 
 		return Nette\Forms\Helpers::createSelectBox(
 			$items,
-			array(
+			[
 				'selected?' => $this->value,
 				'disabled:' => is_array($this->disabled) ? $this->disabled : NULL,
-			)
+			] + $this->optionAttributes
 		)->addAttributes(parent::getControl()->attrs)->multiple(TRUE);
+	}
+
+
+	/**
+	 * @return static
+	 */
+	public function addOptionAttributes(array $attributes)
+	{
+		$this->optionAttributes = $attributes + $this->optionAttributes;
+		return $this;
 	}
 
 }

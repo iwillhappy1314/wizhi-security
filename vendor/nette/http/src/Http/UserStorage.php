@@ -14,8 +14,10 @@ use Nette\Security\IIdentity;
 /**
  * Session storage for user object.
  */
-class UserStorage extends Nette\Object implements Nette\Security\IUserStorage
+class UserStorage implements Nette\Security\IUserStorage
 {
+	use Nette\SmartObject;
+
 	/** @var string */
 	private $namespace = '';
 
@@ -35,7 +37,7 @@ class UserStorage extends Nette\Object implements Nette\Security\IUserStorage
 	/**
 	 * Sets the authenticated status of this user.
 	 * @param  bool
-	 * @return self
+	 * @return static
 	 */
 	public function setAuthenticated($state)
 	{
@@ -70,7 +72,7 @@ class UserStorage extends Nette\Object implements Nette\Security\IUserStorage
 
 	/**
 	 * Sets the user identity.
-	 * @return self
+	 * @return static
 	 */
 	public function setIdentity(IIdentity $identity = NULL)
 	{
@@ -93,7 +95,7 @@ class UserStorage extends Nette\Object implements Nette\Security\IUserStorage
 	/**
 	 * Changes namespace; allows more users to share a session.
 	 * @param  string
-	 * @return self
+	 * @return static
 	 */
 	public function setNamespace($namespace)
 	{
@@ -117,9 +119,9 @@ class UserStorage extends Nette\Object implements Nette\Security\IUserStorage
 
 	/**
 	 * Enables log out after inactivity.
-	 * @param  string|int|\DateTime Number of seconds or timestamp
-	 * @param  int Log out when the browser is closed | Clear the identity from persistent storage?
-	 * @return self
+	 * @param  string|int|\DateTimeInterface Number of seconds or timestamp
+	 * @param  int Clear the identity from persistent storage?
+	 * @return static
 	 */
 	public function setExpiration($time, $flags = 0)
 	{
@@ -134,9 +136,6 @@ class UserStorage extends Nette\Object implements Nette\Security\IUserStorage
 		}
 
 		$section->expireIdentity = (bool) ($flags & self::CLEAR_IDENTITY);
-		$section->expireBrowser = (bool) ($flags & self::BROWSER_CLOSED);
-		$section->browserCheck = TRUE;
-		$section->setExpiration(0, 'browserCheck');
 		$section->setExpiration($time, 'foo'); // time check
 		return $this;
 	}
@@ -173,14 +172,6 @@ class UserStorage extends Nette\Object implements Nette\Security\IUserStorage
 			$section->remove();
 		}
 
-		if ($section->authenticated && $section->expireBrowser && !$section->browserCheck) { // check if browser was closed?
-			$section->reason = self::BROWSER_CLOSED;
-			$section->authenticated = FALSE;
-			if ($section->expireIdentity) {
-				unset($section->identity);
-			}
-		}
-
 		if ($section->authenticated && $section->expireDelta > 0) { // check time expiration
 			if ($section->expireTime < time()) {
 				$section->reason = self::INACTIVITY;
@@ -193,8 +184,7 @@ class UserStorage extends Nette\Object implements Nette\Security\IUserStorage
 		}
 
 		if (!$section->authenticated) {
-			unset($section->expireTime, $section->expireDelta, $section->expireIdentity,
-				$section->expireBrowser, $section->browserCheck, $section->authTime);
+			unset($section->expireTime, $section->expireDelta, $section->expireIdentity, $section->authTime);
 		}
 
 		return $this->sessionSection;

@@ -1,94 +1,3 @@
-/*
- A simple jQuery modal (http://github.com/kylefox/jquery-modal)
- Version 0.7.0
- */
-!function (o) {
-    var t = [], i = function () {
-        return t.length ? t[t.length - 1] : null
-    }, e = function () {
-        var o, i = !1;
-        for (o = t.length - 1; o >= 0; o--)t[o].$blocker && (t[o].$blocker.toggleClass("current", !i).toggleClass("behind", i), i = !0)
-    };
-    o.modal = function (e, s) {
-        var l, n;
-        if (this.$body = o("body"), this.options = o.extend({}, o.modal.defaults, s), this.options.doFade = !isNaN(parseInt(this.options.fadeDuration, 10)), this.$blocker = null, this.options.closeExisting)for (; o.modal.isActive();)o.modal.close();
-        if (t.push(this), e.is("a"))if (n = e.attr("href"), /^#/.test(n)) {
-            if (this.$elm = o(n), 1 !== this.$elm.length)return null;
-            this.$body.append(this.$elm), this.open()
-        } else this.$elm = o("<div>"), this.$body.append(this.$elm), l = function (o, t) {
-            t.elm.remove()
-        }, this.showSpinner(), e.trigger(o.modal.AJAX_SEND), o.get(n).done(function (t) {
-            if (o.modal.isActive()) {
-                e.trigger(o.modal.AJAX_SUCCESS);
-                var s = i();
-                s.$elm.empty().append(t).on(o.modal.CLOSE, l), s.hideSpinner(), s.open(), e.trigger(o.modal.AJAX_COMPLETE)
-            }
-        }).fail(function () {
-            e.trigger(o.modal.AJAX_FAIL);
-            var s = i();
-            s.hideSpinner(), t.pop(), e.trigger(o.modal.AJAX_COMPLETE)
-        }); else this.$elm = e, this.$body.append(this.$elm), this.open()
-    }, o.modal.prototype = {
-        constructor: o.modal, open: function () {
-            var t = this;
-            this.block(), this.options.doFade ? setTimeout(function () {
-                t.show()
-            }, this.options.fadeDuration * this.options.fadeDelay) : this.show(), o(document).off("keydown.modal").on("keydown.modal", function (o) {
-                var t = i();
-                27 == o.which && t.options.escapeClose && t.close()
-            }), this.options.clickClose && this.$blocker.click(function (t) {
-                t.target == this && o.modal.close()
-            })
-        }, close: function () {
-            t.pop(), this.unblock(), this.hide(), o.modal.isActive() || o(document).off("keydown.modal")
-        }, block: function () {
-            this.$elm.trigger(o.modal.BEFORE_BLOCK, [this._ctx()]), this.$body.css("overflow", "hidden"), this.$blocker = o('<div class="jquery-modal blocker current"></div>').appendTo(this.$body), e(), this.options.doFade && this.$blocker.css("opacity", 0).animate({opacity: 1}, this.options.fadeDuration), this.$elm.trigger(o.modal.BLOCK, [this._ctx()])
-        }, unblock: function (t) {
-            !t && this.options.doFade ? this.$blocker.fadeOut(this.options.fadeDuration, this.unblock.bind(this, !0)) : (this.$blocker.children().appendTo(this.$body), this.$blocker.remove(), this.$blocker = null, e(), o.modal.isActive() || this.$body.css("overflow", ""))
-        }, show: function () {
-            this.$elm.trigger(o.modal.BEFORE_OPEN, [this._ctx()]), this.options.showClose && (this.closeButton = o('<a href="#close-modal" rel="modal:close" class="close-modal ' + this.options.closeClass + '">' + this.options.closeText + "</a>"), this.$elm.append(this.closeButton)), this.$elm.addClass(this.options.modalClass).appendTo(this.$blocker), this.options.doFade ? this.$elm.css("opacity", 0).show().animate({opacity: 1}, this.options.fadeDuration) : this.$elm.show(), this.$elm.trigger(o.modal.OPEN, [this._ctx()])
-        }, hide: function () {
-            this.$elm.trigger(o.modal.BEFORE_CLOSE, [this._ctx()]), this.closeButton && this.closeButton.remove();
-            var t = this;
-            this.options.doFade ? this.$elm.fadeOut(this.options.fadeDuration, function () {
-                t.$elm.trigger(o.modal.AFTER_CLOSE, [t._ctx()])
-            }) : this.$elm.hide(0, function () {
-                t.$elm.trigger(o.modal.AFTER_CLOSE, [t._ctx()])
-            }), this.$elm.trigger(o.modal.CLOSE, [this._ctx()])
-        }, showSpinner: function () {
-            this.options.showSpinner && (this.spinner = this.spinner || o('<div class="' + this.options.modalClass + '-spinner"></div>').append(this.options.spinnerHtml), this.$body.append(this.spinner), this.spinner.show())
-        }, hideSpinner: function () {
-            this.spinner && this.spinner.remove()
-        }, _ctx: function () {
-            return {elm: this.$elm, $blocker: this.$blocker, options: this.options}
-        }
-    }, o.modal.close = function (t) {
-        if (o.modal.isActive()) {
-            t && t.preventDefault();
-            var e = i();
-            return e.close(), e.$elm
-        }
-    }, o.modal.isActive = function () {
-        return t.length > 0
-    }, o.modal.defaults = {
-        closeExisting: !0,
-        escapeClose: !0,
-        clickClose: !0,
-        closeText: "Close",
-        closeClass: "",
-        modalClass: "modal",
-        spinnerHtml: null,
-        showSpinner: !0,
-        showClose: !0,
-        fadeDuration: null,
-        fadeDelay: 1
-    }, o.modal.BEFORE_BLOCK = "modal:before-block", o.modal.BLOCK = "modal:block", o.modal.BEFORE_OPEN = "modal:before-open", o.modal.OPEN = "modal:open", o.modal.BEFORE_CLOSE = "modal:before-close", o.modal.CLOSE = "modal:close", o.modal.AFTER_CLOSE = "modal:after-close", o.modal.AJAX_SEND = "modal:ajax:send", o.modal.AJAX_SUCCESS = "modal:ajax:success", o.modal.AJAX_FAIL = "modal:ajax:fail", o.modal.AJAX_COMPLETE = "modal:ajax:complete", o.fn.modal = function (t) {
-        return 1 === this.length && new o.modal(this, t), this
-    }, o(document).on("click.modal", 'a[rel="modal:close"]', o.modal.close), o(document).on("click.modal", 'a[rel="modal:open"]', function (t) {
-        t.preventDefault(), o(this).modal()
-    })
-}(jQuery);
-
 /*! Validator.js
  * @author: sofish https://github.com/sofish
  * @copyright: MIT license */
@@ -179,8 +88,16 @@
                 , port = '(:\\d{1,5})?'
                 , ip = '\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}'
                 , address = '(\\/\\S*)?'
-                , domainType = [protocols, userInfo, domain, port, address]
-                , ipType = [protocols, userInfo, ip, port, address]
+                , domainType = [protocols,
+                userInfo,
+                domain,
+                port,
+                address]
+                , ipType = [protocols,
+                userInfo,
+                ip,
+                port,
+                address]
                 , rDomain = new RegExp('^' + domainType.join('') + '$', 'i')
                 , rIP = new RegExp('^' + ipType.join('') + '$', 'i')
 
@@ -224,7 +141,9 @@
         // [type=text] 也会进这项
         text: function (text) {
 
-            if (!(text = $.trim(text)).length) return;
+            if (!(text = $.trim(text)).length) {
+                return;
+            }
 
             var max = parseInt(this.$item.attr('maxlength'), 10)
                 , min = parseInt(this.$item.attr('minlength'), 10)
@@ -234,8 +153,12 @@
                 var ret = true
                     , length = text.length
 
-                if (min) ret = length >= min
-                if (max) ret = ret && (length <= max)
+                if (min) {
+                    ret = length >= min
+                }
+                if (max) {
+                    ret = ret && (length <= max)
+                }
 
                 return ret
             }
@@ -270,8 +193,12 @@
     aorbValidate = function ($item, klass, isErrorOnParent) {
         var id = $item.data('aorb') === 'a' ? 'b' : 'a'
             , $pair = $('[data-aorb=' + id + ']', $item.parents('form').eq(0))
-            , a = [$item, klass, isErrorOnParent]
-            , b = [$pair, klass, isErrorOnParent]
+            , a = [$item,
+            klass,
+            isErrorOnParent]
+            , b = [$pair,
+            klass,
+            isErrorOnParent]
             , result = 0
 
         result += validateReturn.apply(this, a) ? 0 : 1
@@ -304,7 +231,7 @@
         // HTML5 pattern 支持
         message = message ? message :
             pattern ? ((new RegExp(pattern)).test(val) || 'unvalid') :
-            patterns[type](val) || 'unvalid'
+                patterns[type](val) || 'unvalid'
 
         // 返回的错误对象 = {
         //    $el: {jQuery Element Object} // 当前表单项
@@ -317,10 +244,12 @@
         }
 
         return /^(?:unvalid|empty)$/.test(message) ? (ret = {
-            $el: addErrorClass.call(this, $item, klass, parent, message)
-            , type: type
-            , error: message
-        }, $item.trigger('after:' + event, $item), ret) :
+                $el  : addErrorClass.call(this, $item, klass, parent, message)
+                ,
+                type : type
+                ,
+                error: message
+            }, $item.trigger('after:' + event, $item), ret) :
             (removeErrorClass.call(this, $item, klass, parent), $item.trigger('after:' + event, $item), false)
     }
 
@@ -348,7 +277,9 @@
         aorb = $item.data('aorb')
         event = $item.data('event')
 
-        commonArgs = [$item, klass, parent]
+        commonArgs = [$item,
+            klass,
+            parent]
 
         // 当指定 `data-event` 的时候在检测前触发自定义事件
         // NOTE: 把 jQuery Object 传到 trigger 方法中作为参数，会变成原生的 DOM Object
@@ -506,18 +437,33 @@
 
 jQuery(document).ready(function ($) {
 
+    $("#open-login").click(function() {
+        $("#register-modal").modal('hide');
+        $("#login-modal").modal('show');
+    });
+
+    $("#open-register").click(function() {
+        $("#register-modal").modal('show');
+        $("#login-modal").modal('hide');
+    });
+
+    $("#open-reset").click(function() {
+        $("#reset-modal").modal('show');
+        $("#login-modal").modal('hide');
+    });
+
     // 验证会员ID为唯一
     $('#user_login').on('before:validate_uid', function (event, element) {
         var parent = $(this).parent('.form-group');
         $.ajax({
-            method: 'POST',
-            url: '/validate_uid/',
+            method  : 'POST',
+            url     : '/validate_uid/',
             dataType: "json",
-            data: {
-                'user_login': $('form#modal-register #user_login').val(),
+            data    : {
+                'user_login'       : $('form#modal-register #user_login').val(),
                 'security-register': $('form#modal-register #security-register').val()
             },
-            success: function (data) {
+            success : function (data) {
                 if (data.success == false) {
                     parent.addClass('has-error');
                     parent.find('.text-msg').removeClass('text-success').addClass('text-danger').html(data.message);
@@ -533,14 +479,14 @@ jQuery(document).ready(function ($) {
     $('#user_email').on('before:validate_email', function (event, element) {
         var parent = $(this).parent('.form-group');
         $.ajax({
-            method: 'POST',
-            url: '/validate_email/',
+            method  : 'POST',
+            url     : '/validate_email/',
             dataType: "json",
-            data: {
-                'user_email': $('form#modal-register #user_email').val(),
+            data    : {
+                'user_email'       : $('form#modal-register #user_email').val(),
                 'security-register': $('form#modal-register #security-register').val()
             },
-            success: function (data) {
+            success : function (data) {
                 if (data.success == false) {
                     parent.addClass('has-error');
                     parent.find('.text-msg').removeClass('text-success').addClass('text-danger').html(data.message);
@@ -557,14 +503,14 @@ jQuery(document).ready(function ($) {
     $('#password').on('before:validate_pass', function (event, element) {
         var parent = $(this).parent('.form-group');
         $.ajax({
-            method: 'POST',
-            url: '/validate_pass/',
+            method  : 'POST',
+            url     : '/validate_pass/',
             dataType: "json",
-            data: {
-                'password': $('form#modal-register #password').val(),
+            data    : {
+                'password'         : $('form#modal-register #password').val(),
                 'security-register': $('form#modal-register #security-register').val()
             },
-            success: function (data) {
+            success : function (data) {
                 if (data.success == false) {
                     parent.addClass('has-error');
                     parent.find('.text-msg').removeClass('text-success').addClass('text-danger').html(data.message);
@@ -579,7 +525,7 @@ jQuery(document).ready(function ($) {
 
     var options = {
         isErrorOnParent: true,
-        klass: 'has-error'
+        klass          : 'has-error'
     };
 
     $('#modal-register').validator(options);
@@ -595,19 +541,19 @@ jQuery(document).ready(function ($) {
             checkbox_value = $('form#login #rememberme').val();
         }
         $.ajax({
-            type: 'POST',
-            dataType: 'json',
-            url: '/login/',
-            data: {
-                'username': $('form#modal-login #username').val(),
-                'password': $('form#modal-login #password').val(),
-                'rememberme': checkbox_value,
+            type      : 'POST',
+            dataType  : 'json',
+            url       : '/jingyee/login/',
+            data      : {
+                'username'      : $('form#modal-login #username').val(),
+                'password'      : $('form#modal-login #password').val(),
+                'rememberme'    : checkbox_value,
                 'security-login': $('form#modal-login #security-login').val()
             },
             beforeSend: function () {
                 $('#wp-submit').addClass('loading');
             },
-            success: function (data) {
+            success   : function (data) {
                 $('#wp-submit').removeClass('reset');
                 $('form#modal-login div.status').html(data.message).fadeIn();
                 if (data.loggedin == true) {
@@ -625,28 +571,28 @@ jQuery(document).ready(function ($) {
         e.preventDefault();
 
         $.ajax({
-            type: 'POST',
-            dataType: 'json',
-            url: '/register/',
-            data: {
-                'user_login': $('form#modal-register #user_login').val(),
-                'user_email': $('form#modal-register #user_email').val(),
-                'password': $('form#modal-register #password').val(),
-                're_password': $('form#modal-register #re_password').val(),
-                'captcha': $('form#modal-register #captcha').val(),
+            type      : 'POST',
+            dataType  : 'json',
+            url       : '/register/',
+            data      : {
+                'user_login'       : $('form#modal-register #user_login').val(),
+                'user_email'       : $('form#modal-register #user_email').val(),
+                'password'         : $('form#modal-register #password').val(),
+                're_password'      : $('form#modal-register #re_password').val(),
+                'captcha'          : $('form#modal-register #captcha').val(),
                 'security-register': $('form#modal-register #security-register').val()
             },
             beforeSend: function () {
                 $('#pass-submit').addClass('loading');
             },
-            success: function (data) {
+            success   : function (data) {
                 $('#pass-submit').removeClass('reset');
                 $('form#modal-register div.status').html(data.message).fadeIn();
                 if (data.registered == true && ajax_login_object.registerRedirectURL != '') {
                     window.location.href = ajax_login_object.registerRedirectURL;
                 }
             },
-            error: function (data) {
+            error     : function (data) {
                 $('#pass-submit').removeClass('reset');
             }
         });
@@ -660,17 +606,17 @@ jQuery(document).ready(function ($) {
         e.preventDefault();
 
         $.ajax({
-            type: 'POST',
-            dataType: 'json',
-            url: 'reset-password',
-            data: {
-                'lost_pass': $('form#modal-reset-pass #lost_pass').val(),
+            type      : 'POST',
+            dataType  : 'json',
+            url       : 'reset-password',
+            data      : {
+                'lost_pass'     : $('form#modal-reset-pass #lost_pass').val(),
                 'security-reset': $('form#modal-reset-pass #security-reset').val()
             },
             beforeSend: function () {
                 $('#user-submit').addClass('loading');
             },
-            success: function (data) {
+            success   : function (data) {
                 $('#user-submit').removeClass('reset');
                 $('form#modal-reset-pass div.status').html(data.message).fadeIn();
             }

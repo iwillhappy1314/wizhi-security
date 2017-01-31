@@ -287,6 +287,42 @@ class ValidateTest extends BaseTestCase
         $this->assertFalse($v->validate());
     }
 
+    public function testBetweenValid()
+    {
+        $v = new Validator(array('num' => 5));
+        $v->rule('between', 'num', array(3, 7));
+        $this->assertTrue($v->validate());
+    }
+
+    public function testBetweenInvalid()
+    {
+        $v = new Validator(array('num' => 3));
+        $v->rule('between', 'num', array(5, 10));
+        $this->assertFalse($v->validate());
+    }
+
+    public function testBetweenInvalidValue()
+    {
+        $v = new Validator(array('num' => array(3)));
+        $v->rule('between', 'num', array(5, 10));
+        $this->assertFalse($v->validate());
+    }
+
+    public function testBetweenInvalidRange()
+    {
+        $v = new Validator(array('num' => 3));
+        $v->rule('between', 'num');
+        $this->assertFalse($v->validate());
+
+        $v = new Validator(array('num' => 3));
+        $v->rule('between', 'num', 5);
+        $this->assertFalse($v->validate());
+
+        $v = new Validator(array('num' => 3));
+        $v->rule('between', 'num', array(5));
+        $this->assertFalse($v->validate());
+    }
+
     public function testInValid()
     {
         $v = new Validator(array('color' => 'green'));
@@ -666,8 +702,15 @@ class ValidateTest extends BaseTestCase
 
     public function testContainsValid()
     {
-        $v = new Validator(array('test_string' => 'this is a test'));
-        $v->rule('contains', 'test_string', 'a test');
+        $v = new Validator(array('test_string' => 'this is a Test'));
+        $v->rule('contains', 'test_string', 'Test');
+        $this->assertTrue($v->validate());
+    }
+
+    public function testContainsNonStrictValid()
+    {
+        $v = new Validator(array('test_string' => 'this is a Test'));
+        $v->rule('contains', 'test_string', 'test', false);
         $this->assertTrue($v->validate());
     }
 
@@ -675,6 +718,13 @@ class ValidateTest extends BaseTestCase
     {
         $v = new Validator(array('test_string' => 'this is a test'));
         $v->rule('contains', 'test_string', 'foobar');
+        $this->assertFalse($v->validate());
+    }
+
+    public function testContainsStrictNotFound()
+    {
+        $v = new Validator(array('test_string' => 'this is a Test'));
+        $v->rule('contains', 'test_string', 'test');
         $this->assertFalse($v->validate());
     }
 
@@ -944,7 +994,7 @@ class ValidateTest extends BaseTestCase
     public function testCreditCardValid()
     {
         $visa         = array(4539511619543489, 4532949059629052, 4024007171194938, 4929646403373269, 4539135861690622);
-        $mastercard   = array(5162057048081965, 5382687859049349, 5484388880142230, 5464941521226434, 5473481232685965);
+        $mastercard   = array(5162057048081965, 5382687859049349, 5484388880142230, 5464941521226434, 5473481232685965, 2223000048400011, 2223520043560014);
         $amex         = array(371442067262027, 340743030537918, 345509167493596, 343665795576848, 346087552944316);
         $dinersclub   = array(30363194756249, 30160097740704, 38186521192206, 38977384214552, 38563220301454);
         $discover     = array(6011712400392605, 6011536340491809, 6011785775263015, 6011984124619056, 6011320958064251);
@@ -965,7 +1015,7 @@ class ValidateTest extends BaseTestCase
         }
     }
 
-    public function testcreditCardInvalid()
+    public function testCreditCardInvalid()
     {
         $visa         = array(3539511619543489, 3532949059629052, 3024007171194938, 3929646403373269, 3539135861690622);
         $mastercard   = array(4162057048081965, 4382687859049349, 4484388880142230, 4464941521226434, 4473481232685965);
@@ -1105,7 +1155,26 @@ class ValidateTest extends BaseTestCase
         $v = new Validator(array());   
         $v->rule('optional', 'address')->rule('email', 'address');        
         $this->assertTrue($v->validate());
-    }    
+    }
+
+    public function testWithData()
+    {
+        $v = new Validator(array());
+        $v->rule('required', 'name');
+        //validation failed, so must have errors
+        $this->assertFalse($v->validate());
+        $this->assertNotEmpty($v->errors());
+
+        //create copy with valid data
+        $v2 = $v->withData(array('name' => 'Chester Tester'));
+        $this->assertTrue($v2->validate());
+        $this->assertEmpty($v2->errors());
+
+        //create copy with invalid data
+        $v3 = $v->withData(array('firstname' => 'Chester'));
+        $this->assertFalse($v3->validate());
+        $this->assertNotEmpty($v3->errors());
+    }
 }
 
 function sampleFunctionCallback($field, $value, array $params) {

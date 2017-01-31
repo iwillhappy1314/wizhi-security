@@ -3,9 +3,9 @@
   "description": "WordPress Register & Login plugin",
   "type": "wordpress-plugin",
   "require": {
-    "thefold/wordpress-dispatcher": "^1.0",
+    "thefold/wordpress-dispatcher": "^2.0",
     "vlucas/valitron": "^1.2",
-    "nette/forms": "^2.3",
+    "nette/forms": "^2.4",
     "overtrue/socialite": "^1.0",
     "gregwar/captcha": "^1.1"
   },

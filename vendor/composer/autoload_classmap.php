@@ -96,6 +96,7 @@ return array(
     'Nette\\Utils\\ObjectMixin' => $vendorDir . '/nette/utils/src/Utils/ObjectMixin.php',
     'Nette\\Utils\\Paginator' => $vendorDir . '/nette/utils/src/Utils/Paginator.php',
     'Nette\\Utils\\Random' => $vendorDir . '/nette/utils/src/Utils/Random.php',
+    'Nette\\Utils\\Reflection' => $vendorDir . '/nette/utils/src/Utils/Reflection.php',
     'Nette\\Utils\\RegexpException' => $vendorDir . '/nette/utils/src/Utils/exceptions.php',
     'Nette\\Utils\\Strings' => $vendorDir . '/nette/utils/src/Utils/Strings.php',
     'Nette\\Utils\\UnknownImageFileException' => $vendorDir . '/nette/utils/src/Utils/exceptions.php',

@@ -115,7 +115,7 @@ class ObjectMixin
 		} elseif ($isProp && $_this->$name instanceof \Closure) { // closure in property
 			return call_user_func_array($_this->$name, $args);
 
-		} elseif (($methods = & self::getMethods($class)) && isset($methods[$name]) && is_array($methods[$name])) { // magic @methods
+		} elseif (($methods = &self::getMethods($class)) && isset($methods[$name]) && is_array($methods[$name])) { // magic @methods
 			list($op, $rp, $type) = $methods[$name];
 			if (count($args) !== ($op === 'get' ? 0 : 1)) {
 				throw new Nette\InvalidArgumentException("$class::$name() expects " . ($op === 'get' ? 'no' : '1') . ' argument, ' . count($args) . ' given.');
@@ -165,11 +165,11 @@ class ObjectMixin
 	 * @return mixed   property value
 	 * @throws MemberAccessException if the property is not defined.
 	 */
-	public static function & get($_this, $name)
+	public static function &get($_this, $name)
 	{
 		$class = get_class($_this);
 		$uname = ucfirst($name);
-		$methods = & self::getMethods($class);
+		$methods = &self::getMethods($class);
 
 		if ($name === '') {
 			throw new MemberAccessException("Cannot read a class '$class' property without name.");
@@ -213,7 +213,7 @@ class ObjectMixin
 	{
 		$class = get_class($_this);
 		$uname = ucfirst($name);
-		$methods = & self::getMethods($class);
+		$methods = &self::getMethods($class);
 
 		if ($name === '') {
 			throw new MemberAccessException("Cannot write to a class '$class' property without name.");
@@ -258,7 +258,7 @@ class ObjectMixin
 	public static function has($_this, $name)
 	{
 		$name = ucfirst($name);
-		$methods = & self::getMethods(get_class($_this));
+		$methods = &self::getMethods(get_class($_this));
 		return $name !== '' && (isset($methods['get' . $name]) || isset($methods['is' . $name]));
 	}
 
@@ -273,7 +273,7 @@ class ObjectMixin
 	public static function getMagicProperties($class)
 	{
 		static $cache;
-		$props = & $cache[$class];
+		$props = &$cache[$class];
 		if ($props !== NULL) {
 			return $props;
 		}
@@ -297,6 +297,10 @@ class ObjectMixin
 			if ($read || $write) {
 				$props[$name] = $read << 0 | ($nm[0] === 'g') << 1 | $rm->returnsReference() << 2 | $write << 3;
 			}
+		}
+
+		foreach ($rc->getTraits() as $trait) {
+			$props += self::getMagicProperties($trait->getName());
 		}
 
 		if ($parent = get_parent_class($class)) {
@@ -361,7 +365,7 @@ class ObjectMixin
 	 * @return bool
 	 * @internal
 	 */
-	public static function checkType(& $val, $type)
+	public static function checkType(&$val, $type)
 	{
 		if (strpos($type, '|') !== FALSE) {
 			$found = NULL;
@@ -449,8 +453,8 @@ class ObjectMixin
 	 */
 	public static function getExtensionMethod($class, $name)
 	{
-		$list = & self::$extMethods[strtolower($name)];
-		$cache = & $list[''][$class];
+		$list = &self::$extMethods[strtolower($name)];
+		$cache = &$list[''][$class];
 		if (isset($cache)) {
 			return $cache;
 		}
@@ -512,6 +516,11 @@ class ObjectMixin
 	{
 		do {
 			$doc[] = $rc->getDocComment();
+			$traits = $rc->getTraits();
+			while ($trait = array_pop($traits)) {
+				$doc[] = $trait->getDocComment();
+				$traits += $trait->getTraits();
+			}
 		} while ($rc = $rc->getParentClass());
 		return preg_match_all($pattern, implode($doc), $m) ? $m[1] : [];
 	}
@@ -525,7 +534,7 @@ class ObjectMixin
 	public static function hasProperty($class, $name)
 	{
 		static $cache;
-		$prop = & $cache[$class][$name];
+		$prop = &$cache[$class][$name];
 		if ($prop === NULL) {
 			$prop = FALSE;
 			try {
@@ -545,7 +554,7 @@ class ObjectMixin
 	 * @return array
 	 * @internal
 	 */
-	public static function & getMethods($class)
+	public static function &getMethods($class)
 	{
 		static $cache;
 		if (!isset($cache[$class])) {

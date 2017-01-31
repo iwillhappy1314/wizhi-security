@@ -44,20 +44,22 @@ class Config implements ArrayAccess
      */
     public function get($key, $default = null)
     {
+        $config = $this->config;
+
         if (is_null($key)) {
-            return $this->config;
+            return $config;
         }
-        if (isset($this->config[$key])) {
-            return $this->config[$key];
+        if (isset($config[$key])) {
+            return $config[$key];
         }
         foreach (explode('.', $key) as $segment) {
-            if (!is_array($this->config) || !array_key_exists($segment, $this->config)) {
+            if (!is_array($config) || !array_key_exists($segment, $config)) {
                 return $default;
             }
-            $this->config = $this->config[$segment];
+            $config = $config[$segment];
         }
 
-        return $this->config;
+        return $config;
     }
 
     /**
@@ -71,7 +73,7 @@ class Config implements ArrayAccess
     public function set($key, $value)
     {
         if (is_null($key)) {
-            throw new InvalidArgumentException("Invalid config key.");
+            throw new InvalidArgumentException('Invalid config key.');
         }
 
         $keys = explode('.', $key);
@@ -101,7 +103,7 @@ class Config implements ArrayAccess
      * @return bool true on success or false on failure.
      *              </p>
      *              <p>
-     *              The return value will be casted to boolean if non-boolean was returned.
+     *              The return value will be casted to boolean if non-boolean was returned
      *
      * @since 5.0.0
      */
@@ -119,7 +121,7 @@ class Config implements ArrayAccess
      *                      The offset to retrieve.
      *                      </p>
      *
-     * @return mixed Can return all value types.
+     * @return mixed Can return all value types
      *
      * @since 5.0.0
      */

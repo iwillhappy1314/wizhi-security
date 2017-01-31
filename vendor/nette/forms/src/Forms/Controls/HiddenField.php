@@ -23,8 +23,9 @@ class HiddenField extends BaseControl
 	{
 		parent::__construct();
 		$this->control->type = 'hidden';
+		$this->setOption('type', 'hidden');
 		if ($persistentValue !== NULL) {
-			$this->unmonitor('Nette\Forms\Form');
+			$this->unmonitor(Nette\Forms\Form::class);
 			$this->persistValue = TRUE;
 			$this->value = (string) $persistentValue;
 		}
@@ -34,7 +35,8 @@ class HiddenField extends BaseControl
 	/**
 	 * Sets control's value.
 	 * @param  string
-	 * @return self
+	 * @return static
+	 * @internal
 	 */
 	public function setValue($value)
 	{
@@ -56,11 +58,11 @@ class HiddenField extends BaseControl
 	{
 		$this->setOption('rendered', TRUE);
 		$el = clone $this->control;
-		return $el->addAttributes(array(
+		return $el->addAttributes([
 			'name' => $this->getHtmlName(),
 			'disabled' => $this->isDisabled(),
 			'value' => $this->value,
-		));
+		]);
 	}
 
 

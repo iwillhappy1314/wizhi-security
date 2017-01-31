@@ -16,21 +16,25 @@ use Nette\Forms\Helpers;
 
 class DateInput extends Nette\Forms\Controls\BaseControl
 {
-	private $day, $month, $year;
+	/** @var string */
+	private
+		$day = '',
+		$month = '',
+		$year = '';
 
 
 	public function __construct($label = NULL)
 	{
 		parent::__construct($label);
-		$this->addCondition(Form::FILLED)
-			->addRule(__CLASS__ . '::validateDate', 'Date is invalid.');
+		$this->setRequired(FALSE)
+			->addRule([__CLASS__, 'validateDate'], 'Date is invalid.');
 	}
 
 
 	public function setValue($value)
 	{
 		if ($value === NULL) {
-			$this->day = $this->month = $this->year = NULL;
+			$this->day = $this->month = $this->year = '';
 		} else {
 			$date = Nette\Utils\DateTime::from($value);
 			$this->day = $date->format('j');
@@ -42,13 +46,22 @@ class DateInput extends Nette\Forms\Controls\BaseControl
 
 
 	/**
-	 * @return DateTime|NULL
+	 * @return DateTimeImmutable|NULL
 	 */
 	public function getValue()
 	{
 		return self::validateDate($this)
-			? (new DateTime)->setDate($this->year, $this->month, $this->day)->setTime(0, 0)
+			? (new DateTimeImmutable)->setDate($this->year, $this->month, $this->day)->setTime(0, 0)
 			: NULL;
+	}
+
+
+	/**
+	 * @return bool
+	 */
+	public function isFilled()
+	{
+		return $this->day !== '' || $this->year !== '';
 	}
 
 
@@ -66,7 +79,7 @@ class DateInput extends Nette\Forms\Controls\BaseControl
 	public function getControl()
 	{
 		$name = $this->getHtmlName();
-		return Html::el('input', array(
+		return Html::el('input', [
 				'name' => $name . '[day]',
 				'id' => $this->getHtmlId(),
 				'value' => $this->day,
@@ -74,18 +87,18 @@ class DateInput extends Nette\Forms\Controls\BaseControl
 				'min' => 1,
 				'max' => 31,
 				'data-nette-rules' => Helpers::exportRules($this->getRules()) ?: NULL,
-			))
+			])
 
 			. Helpers::createSelectBox(
-				array(1 => 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12),
-				array('selected?' => $this->month)
+					[1 => 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+					['selected?' => $this->month]
 				)->name($name . '[month]')
 
-			. Html::el('input', array(
+			. Html::el('input', [
 				'name' => $name . '[year]',
 				'value' => $this->year,
 				'type' => 'number',
-			));
+			]);
 	}
 
 
@@ -94,9 +107,9 @@ class DateInput extends Nette\Forms\Controls\BaseControl
 	 */
 	public static function validateDate(Nette\Forms\IControl $control)
 	{
-		return is_numeric($control->day)
-			&& is_numeric($control->month)
-			&& is_numeric($control->year)
+		return ctype_digit($control->day)
+			&& ctype_digit($control->month)
+			&& ctype_digit($control->year)
 			&& checkdate($control->month, $control->day, $control->year);
 	}
 

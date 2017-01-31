@@ -19,16 +19,28 @@ class SelectBox extends ChoiceControl
 	const VALID = ':selectBoxValid';
 
 	/** @var array of option / optgroup */
-	private $options = array();
+	private $options = [];
 
 	/** @var mixed */
 	private $prompt = FALSE;
+
+	/** @var array */
+	private $optionAttributes = [];
+
+
+	public function __construct($label = NULL, array $items = NULL)
+	{
+		parent::__construct($label, $items);
+		$this->setOption('type', 'select');
+		$this->addCondition(Nette\Forms\Form::BLANK)
+			->addRule([$this, 'isOk'], Nette\Forms\Validator::$messages[self::VALID]);
+	}
 
 
 	/**
 	 * Sets first prompt item in select box.
 	 * @param  string
-	 * @return self
+	 * @return static
 	 */
 	public function setPrompt($prompt)
 	{
@@ -49,12 +61,12 @@ class SelectBox extends ChoiceControl
 
 	/**
 	 * Sets options and option groups from which to choose.
-	 * @return self
+	 * @return static
 	 */
 	public function setItems(array $items, $useKeys = TRUE)
 	{
 		if (!$useKeys) {
-			$res = array();
+			$res = [];
 			foreach ($items as $key => $value) {
 				unset($items[$key]);
 				if (is_array($value)) {
@@ -78,31 +90,41 @@ class SelectBox extends ChoiceControl
 	 */
 	public function getControl()
 	{
-		$items = $this->prompt === FALSE ? array() : array('' => $this->translate($this->prompt));
+		$items = $this->prompt === FALSE ? [] : ['' => $this->translate($this->prompt)];
 		foreach ($this->options as $key => $value) {
 			$items[is_array($value) ? $this->translate($key) : $key] = $this->translate($value);
 		}
 
 		return Nette\Forms\Helpers::createSelectBox(
 			$items,
-			array(
+			[
 				'selected?' => $this->value,
 				'disabled:' => is_array($this->disabled) ? $this->disabled : NULL,
-			)
+			] + $this->optionAttributes
 		)->addAttributes(parent::getControl()->attrs);
 	}
 
 
 	/**
-	 * Performs the server side validation.
-	 * @return void
+	 * @return static
 	 */
-	public function validate()
+	public function addOptionAttributes(array $attributes)
 	{
-		parent::validate();
-		if (!$this->isDisabled() && $this->prompt === FALSE && $this->getValue() === NULL && $this->options && $this->control->size < 2) {
-			$this->addError(Nette\Forms\Validator::$messages[self::VALID]);
-		}
+		$this->optionAttributes = $attributes + $this->optionAttributes;
+		return $this;
+	}
+
+
+	/**
+	 * @return bool
+	 */
+	public function isOk()
+	{
+		return $this->isDisabled()
+			|| $this->prompt !== FALSE
+			|| $this->getValue() !== NULL
+			|| !$this->options
+			|| $this->control->size > 1;
 	}
 
 }

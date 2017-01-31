@@ -13,8 +13,10 @@ use Nette;
 /**
  * Session section.
  */
-class SessionSection extends Nette\Object implements \IteratorAggregate, \ArrayAccess
+class SessionSection implements \IteratorAggregate, \ArrayAccess
 {
+	use Nette\SmartObject;
+
 	/** @var Session */
 	private $session;
 
@@ -52,8 +54,8 @@ class SessionSection extends Nette\Object implements \IteratorAggregate, \ArrayA
 	{
 		if ($this->meta === FALSE) {
 			$this->session->start();
-			$this->data = & $_SESSION['__NF']['DATA'][$this->name];
-			$this->meta = & $_SESSION['__NF']['META'][$this->name];
+			$this->data = &$_SESSION['__NF']['DATA'][$this->name];
+			$this->meta = &$_SESSION['__NF']['META'][$this->name];
 		}
 	}
 
@@ -95,7 +97,7 @@ class SessionSection extends Nette\Object implements \IteratorAggregate, \ArrayA
 	{
 		$this->start();
 		if ($this->warnOnUndefined && !array_key_exists($name, $this->data)) {
-			trigger_error("The variable '$name' does not exist in session section", E_USER_NOTICE);
+			trigger_error("The variable '$name' does not exist in session section");
 		}
 
 		return $this->data[$name];
@@ -175,28 +177,23 @@ class SessionSection extends Nette\Object implements \IteratorAggregate, \ArrayA
 
 	/**
 	 * Sets the expiration of the section or specific variables.
-	 * @param  string|int|\DateTime  time, value 0 means "until the browser is closed"
+	 * @param  string|int|\DateTimeInterface  time
 	 * @param  mixed   optional list of variables / single variable to expire
-	 * @return self
+	 * @return static
 	 */
 	public function setExpiration($time, $variables = NULL)
 	{
 		$this->start();
-		if (empty($time)) {
-			$time = NULL;
-			$whenBrowserIsClosed = TRUE;
-		} else {
+		if ($time) {
 			$time = Nette\Utils\DateTime::from($time)->format('U');
 			$max = (int) ini_get('session.gc_maxlifetime');
 			if ($max !== 0 && ($time - time() > $max + 3)) { // 0 - unlimited in memcache handler, 3 - bulgarian constant
-				trigger_error("The expiration time is greater than the session expiration $max seconds", E_USER_NOTICE);
+				trigger_error("The expiration time is greater than the session expiration $max seconds");
 			}
-			$whenBrowserIsClosed = FALSE;
 		}
 
-		foreach (is_array($variables) ? $variables : array($variables) as $variable) {
-			$this->meta[$variable]['T'] = $time;
-			$this->meta[$variable]['B'] = $whenBrowserIsClosed;
+		foreach (is_array($variables) ? $variables : [$variables] as $variable) {
+			$this->meta[$variable]['T'] = $time ?: NULL;
 		}
 		return $this;
 	}
@@ -210,8 +207,8 @@ class SessionSection extends Nette\Object implements \IteratorAggregate, \ArrayA
 	public function removeExpiration($variables = NULL)
 	{
 		$this->start();
-		foreach (is_array($variables) ? $variables : array($variables) as $variable) {
-			unset($this->meta['']['T'], $this->meta['']['B']);
+		foreach (is_array($variables) ? $variables : [$variables] as $variable) {
+			unset($this->meta[$variable]['T']);
 		}
 	}
 
